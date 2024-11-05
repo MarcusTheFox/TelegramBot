@@ -1,6 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
-import { startScreen } from './screens/startScreen';
+import { startScreen } from './screens/start';
 // Импортируйте другие экраны по мере необходимости
 
 dotenv.config();

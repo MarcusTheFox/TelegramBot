@@ -18,6 +18,11 @@ export class InlineKeyboard {
     return this; // Возвращаем текущий объект для поддержки цепочки вызовов
   }
 
+  public addKeyboard(keyboard: Array<Array<Button>>): this {
+    this.keyboard.push(...keyboard);
+    return this;
+  }
+
   // Получение объекта для reply_markup
   public get layout() {
     return {

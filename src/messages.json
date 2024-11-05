@@ -2,17 +2,17 @@
   "screens": {
     "start": {
       "text": "Добро пожаловать!",
-      "buttonRows": [
+      "inlineKeyboard": [
         [
           {
-            "text": "Создать комнату",
-            "data": "start_to_gameSelect"
+            "text": "Подключиться",
+            "data": "start_to_join"
           }
         ],
         [
           {
-            "text": "Присоединиться",
-            "data": "start_to_join"
+            "text": "Создать комнату",
+            "data": "start_to_gameSelect"
           }
         ],
         [
@@ -23,9 +23,20 @@
         ]
       ]
     },
+    "join": {
+      "text": "ПОДКЛЮЧЕНИЕ НЕ РАБОТАЕТ",
+      "inlineKeyboard": [
+        [
+          {
+            "text": "Назад",
+            "data": "join_to_start"
+          }
+        ]
+      ]
+    },
     "gameSelect": {
       "text": "Выберите игру",
-      "buttonRows": [
+      "inlineKeyboard": [
         [
           {
             "text": "Liar`s Bar",
@@ -46,7 +57,7 @@
     },
     "settings": {
       "text": "Настройки",
-      "buttonRows": [
+      "inlineKeyboard": [
         [
           {
             "text": "Изменить имя",
@@ -61,6 +72,50 @@
           {
             "text": "Назад",
             "data": "settings_to_start"
+          }
+        ]
+      ]
+    },
+    "changeName": {
+      "text": "Изменить имя НЕ РАБОТАЕТ",
+      "inlineKeyboard": [
+        [
+          {
+            "text": "Назад",
+            "data": "changeName_to_settings"
+          }
+        ]
+      ]
+    },
+    "resetName": {
+      "text": "Сбросить имя НЕ РАБОТАЕТ",
+      "inlineKeyboard": [
+        [
+          {
+            "text": "Назад",
+            "data": "resetName_to_settings"
+          }
+        ]
+      ]
+    },
+    "liarsBar": {
+      "text": "Liar`s Bar НЕ РАБОТАЕТ",
+      "inlineKeyboard": [
+        [
+          {
+            "text": "Назад",
+            "data": "liarsBar_to_gameSelect"
+          }
+        ]
+      ]
+    },
+    "cats": {
+      "text": "Взрывные котята НЕ РАБОТАЕТ",
+      "inlineKeyboard": [
+        [
+          {
+            "text": "Назад",
+            "data": "cats_to_gameSelect"
           }
         ]
       ]

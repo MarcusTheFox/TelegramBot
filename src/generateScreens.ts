@@ -8,7 +8,7 @@ interface Button {
 
 interface Screen {
   text: string;
-  buttonRows: Button[][];
+  inlineKeyboard: Button[][];
 }
 
 interface Screens {
@@ -21,7 +21,7 @@ const messages: { screens: Screens } = JSON.parse(fs.readFileSync(path.join(__di
 // Функция для генерации кода экрана
 const generateScreenCode = (screenName: string, screen: Screen): string => {
   const targetScreens: string[] = [];
-  screen.buttonRows.map(row => {
+  screen.inlineKeyboard.map(row => {
     row.map(el => {
       let target = el.data.split("_to_")[1];
       targetScreens.push(
@@ -30,15 +30,15 @@ const generateScreenCode = (screenName: string, screen: Screen): string => {
     })
   })
 
-  const buttonRows = screen.buttonRows.map(row => {
-    return `.addRow([${row.map(button => {
-      return `{text: "${button.text}", data: "${button.data}"}`;
+  const inlineKeyboard = screen.inlineKeyboard.map((row, rowIndex) => {
+    return `.addRow([${row.map((button, buttonIndex) => {
+      return `keyboard[${rowIndex}][${buttonIndex}]`;
     }).join(', ')}])`;
   }).join('\n    ');
 
-  const actions = screen.buttonRows.map((row, rowIndex) => {
+  const actions = screen.inlineKeyboard.map((row, rowIndex) => {
     return row.map((el, elIndex) => {
-      return `{button: buttons[${rowIndex}][${elIndex}], nextScreenFunction: ${el.data.split("_to_")[1]}Screen}`;
+      return `{button: keyboard[${rowIndex}][${elIndex}], nextScreenFunction: ${el.data.split("_to_")[1]}Screen}`;
     }).join(',\n    ')
   }).join(",\n    ");
 
@@ -51,20 +51,19 @@ import { CallbackAction, handleCallback } from '../CallbackHandler';
 ${targetScreens.join('\n')}
 
 const screen = messages.screens.${screenName};
-const buttons = screen.buttonRows;
+const keyboard = screen.inlineKeyboard;
 
 export async function ${screenName}Screen(bot: TelegramBot, chatId: number, messageId: number) {
-  const inlineKeyboard = new InlineKeyboard()
-    ${buttonRows};
+  const inlineKeyboard = new InlineKeyboard().addKeyboard(keyboard);
 
-  await editMessage(bot, chatId, messageId, screen.text, inlineKeyboard);
+  messageId = await editMessage(bot, chatId, messageId, screen.text, inlineKeyboard);
 
   const actions: CallbackAction[] = [
     ${actions}
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {
-    handleCallback(bot, chatId, callbackQuery, actions, callbackHandler);
+    handleCallback(bot, chatId, messageId, callbackQuery, actions, callbackHandler);
   }
 
   bot.on('callback_query', callbackHandler);

@@ -17,12 +17,13 @@ export interface CallbackAction {
 export function handleCallback(
   bot: TelegramBot,
   chatId: number,
+  messageId: number,
   callbackQuery: TelegramBot.CallbackQuery,
   actions: CallbackAction[],
   removeHandler: (callbackQuery: TelegramBot.CallbackQuery) => void
 ) 
 {
-  if (!callbackQuery.message || callbackQuery.message.chat.id !== chatId) return;
+  if (!callbackQuery.message || callbackQuery.message.chat.id !== chatId || callbackQuery.message.message_id !== messageId) return;
   
   for (const action of actions) {
     if (callbackQuery.data === action.button.data) {
