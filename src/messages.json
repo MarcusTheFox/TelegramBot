@@ -1,0 +1,69 @@
+{
+  "screens": {
+    "start": {
+      "text": "Добро пожаловать!",
+      "buttonRows": [
+        [
+          {
+            "text": "Создать комнату",
+            "data": "start_to_gameSelect"
+          }
+        ],
+        [
+          {
+            "text": "Присоединиться",
+            "data": "start_to_join"
+          }
+        ],
+        [
+          {
+            "text": "Настройки",
+            "data": "start_to_settings"
+          }
+        ]
+      ]
+    },
+    "gameSelect": {
+      "text": "Выберите игру",
+      "buttonRows": [
+        [
+          {
+            "text": "Liar`s Bar",
+            "data": "gameSelect_to_liarsBar"
+          },
+          {
+            "text": "Взрывные котята",
+            "data": "gameSelect_to_cats"
+          }
+        ],
+        [
+          {
+            "text": "Назад",
+            "data": "gameSelect_to_start"
+          }
+        ]
+      ]
+    },
+    "settings": {
+      "text": "Настройки",
+      "buttonRows": [
+        [
+          {
+            "text": "Изменить имя",
+            "data": "settings_to_changeName"
+          },
+          {
+            "text": "Сбросить имя",
+            "data": "settings_to_resetName"
+          }
+        ],
+        [
+          {
+            "text": "Назад",
+            "data": "settings_to_start"
+          }
+        ]
+      ]
+    }
+  }
+}
