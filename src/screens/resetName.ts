@@ -4,11 +4,18 @@ import { editMessage } from '../Message';
 import messages from '../messages.json';
 import { CallbackAction, handleCallback } from '../CallbackHandler';
 import { settingsScreen } from './settings';
+import User from '../models/User';
 
 const screen = messages.screens.resetName;
 const keyboard = screen.inlineKeyboard;
 
 export async function resetNameScreen(bot: TelegramBot, chatId: number, messageId: number) {
+  try {
+    await User.findOneAndDelete({ chatId });
+  } catch(err) {
+    
+  }
+
   const inlineKeyboard = new InlineKeyboard().addKeyboard(keyboard);
 
   messageId = await editMessage(bot, chatId, messageId, screen.text, inlineKeyboard);
