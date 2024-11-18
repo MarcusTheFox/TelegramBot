@@ -2,24 +2,27 @@ import TelegramBot from 'node-telegram-bot-api';
 import { InlineKeyboard } from '../InlineKeyboard';
 import { editMessage } from '../Message';
 import messages from '../messages.json';
-import { CallbackAction, handleCallback } from '../CallbackHandler';
+import { CallbackAction, handleCallback, MessageScreen } from '../CallbackHandler';
+import { liarsBarCardScreen } from './liarsBarCard';
+import { liarsBarDiceScreen } from './liarsBarDice';
 import { gameSelectScreen } from './gameSelect';
 
 const screen = messages.screens.liarsBar;
 const keyboard = screen.inlineKeyboard;
 
-export async function liarsBarScreen(bot: TelegramBot, chatId: number, messageId: number) {
+export async function liarsBarScreen(messageScreen: MessageScreen) {
   const inlineKeyboard = new InlineKeyboard().addKeyboard(keyboard);
-
-  messageId = await editMessage(bot, chatId, messageId, screen.text, inlineKeyboard);
+  const nextScreen = await editMessage(messageScreen, screen.text, inlineKeyboard);
 
   const actions: CallbackAction[] = [
-    {button: keyboard[0][0], nextScreenFunction: gameSelectScreen}
+    // {button: keyboard[0][0], nextScreenFunction: liarsBarCardScreen},
+    // {button: keyboard[0][1], nextScreenFunction: liarsBarDiceScreen},
+    {button: keyboard[0][0], nextScreenFunction: 'backScreen'},
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {
-    handleCallback(bot, chatId, messageId, callbackQuery, actions, callbackHandler);
+    handleCallback(nextScreen, callbackQuery, actions, callbackHandler);
   }
 
-  bot.on('callback_query', callbackHandler);
+  messageScreen.bot.on('callback_query', callbackHandler);
 }

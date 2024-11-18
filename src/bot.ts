@@ -2,6 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import { startScreen } from './screens/start';
+import { MessageScreen } from './CallbackHandler';
 // Импортируйте другие экраны по мере необходимости
 
 dotenv.config();
@@ -22,7 +23,13 @@ const bot = new TelegramBot(token, { polling: true });
 
 // Установите обработчик для команды /start
 bot.onText(/\/start/, (msg) => {
-  startScreen(bot, msg.chat.id, 0); // Переход к экрану "start"
+  const messageScreen: MessageScreen = {
+    bot: bot,
+    chatId: msg.chat.id,
+    messageId: 0,
+    fromScreen: []
+  }
+  startScreen(messageScreen)
 });
 
 // Добавьте другие обработчики сообщений по мере необходимости
