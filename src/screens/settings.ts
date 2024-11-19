@@ -5,7 +5,6 @@ import messages from '../messages.json';
 import { CallbackAction, handleCallback, MessageScreen } from '../CallbackHandler';
 import { changeNameScreen } from './changeName';
 import { resetNameScreen } from './resetName';
-import { startScreen } from './start';
 
 const screen = messages.screens.settings;
 const keyboard = screen.inlineKeyboard;
@@ -15,9 +14,9 @@ export async function settingsScreen(messageScreen: MessageScreen) {
   const nextScreen = await editMessage(messageScreen, screen.text, inlineKeyboard);
 
   const actions: CallbackAction[] = [
-    {button: keyboard[0][0], nextScreenFunction: changeNameScreen},
-    {button: keyboard[0][1], nextScreenFunction: resetNameScreen},
-    {button: keyboard[1][0], nextScreenFunction: 'backScreen'}
+    {button: keyboard[0][0], nextScreenCallback: changeNameScreen},
+    {button: keyboard[0][1], nextScreenCallback: resetNameScreen},
+    {button: keyboard[1][0], nextScreenCallback: 'backScreen'}
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {

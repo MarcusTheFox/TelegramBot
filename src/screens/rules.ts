@@ -14,7 +14,7 @@ export async function rulesScreen(bot: TelegramBot, chatId: number, messageId: n
   messageId = await editMessage(bot, chatId, messageId, screen.text, inlineKeyboard);
 
   const actions: CallbackAction[] = [
-    {button: keyboard[0][0], nextScreenFunction: liarsBarScreen}
+    {button: keyboard[0][0], nextScreenCallback: liarsBarScreen}
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {

@@ -6,19 +6,22 @@
         [
           {
             "text": "Подключиться",
-            "data": "start_to_join"
+            "callback_data": "start_to_join",
+            "data": {}
           }
         ],
         [
           {
             "text": "Создать комнату",
-            "data": "start_to_gameSelect"
+            "callback_data": "start_to_gameSelect",
+            "data": {}
           }
         ],
         [
           {
             "text": "Настройки",
-            "data": "start_to_settings"
+            "callback_data": "start_to_settings",
+            "data": {}
           }
         ]
       ]
@@ -29,7 +32,8 @@
         [
           {
             "text": "Назад",
-            "data": "join_to_start"
+            "callback_data": "join_to_start",
+            "data": {}
           }
         ]
       ]
@@ -40,17 +44,22 @@
         [
           {
             "text": "Liar`s Bar",
-            "data": "gameSelect_to_liarsBar"
+            "callback_data": "gameSelect_to_liarsBar",
+            "data": {}
           },
           {
             "text": "Взрывные котята",
-            "data": "gameSelect_to_cats"
+            "callback_data": "gameSelect_to_cats",
+            "data": {
+              "game": "Взрывные котята"
+            }
           }
         ],
         [
           {
             "text": "Назад",
-            "data": "gameSelect_to_start"
+            "callback_data": "gameSelect_to_start",
+            "data": {}
           }
         ]
       ]
@@ -61,17 +70,20 @@
         [
           {
             "text": "Изменить имя",
-            "data": "settings_to_changeName"
+            "callback_data": "settings_to_changeName",
+            "data": {}
           },
           {
             "text": "Сбросить имя",
-            "data": "settings_to_resetName"
+            "callback_data": "settings_to_resetName",
+            "data": {}
           }
         ],
         [
           {
             "text": "Назад",
-            "data": "settings_to_start"
+            "callback_data": "settings_to_start",
+            "data": {}
           }
         ]
       ]
@@ -82,7 +94,8 @@
         [
           {
             "text": "Назад",
-            "data": "changeName_to_settings"
+            "callback_data": "changeName_to_settings",
+            "data": {}
           }
         ]
       ]
@@ -93,29 +106,76 @@
         [
           {
             "text": "Назад",
-            "data": "resetName_to_settings"
+            "callback_data": "resetName_to_settings",
+            "data": {}
           }
         ]
       ]
     },
     "liarsBar": {
-      "text": "Liar`s Bar НЕ РАБОТАЕТ",
+      "text": "Liar`s Bar\nВыберите режим",
       "inlineKeyboard": [
         [
           {
+            "text": "Liar`s Card",
+            "callback_data": "liarsBar:card_to_createRoom",
+            "data": {
+              "game":"Liar`s Bar",
+              "mode": "Liar`s Card"
+            }
+          },
+          {
+            "text": "Liar`s Dice",
+            "callback_data": "liarsBar:dice_to_createRoom",
+            "data": {
+              "game":"Liar`s Bar",
+              "mode": "Liar`s Dice"
+            }
+          }
+        ],
+        [
+          {
             "text": "Назад",
-            "data": "liarsBar_to_gameSelect"
+            "callback_data": "liarsBar_to_gameSelect",
+            "data": {}
           }
         ]
       ]
     },
-    "cats": {
-      "text": "Взрывные котята НЕ РАБОТАЕТ",
+    "createRoom": {
+      "text": "Создание комнаты\n",
+      "inlineKeyboard": [
+        [
+          {
+            "text": "Создать комнату",
+            "callback_data": "createRoom_to_room",
+            "data": {}
+          }
+        ],
+        [
+          {
+            "text": "Правила",
+            "callback_data": "createRoom_to_rules",
+            "data": {}
+          }
+        ],
+        [
+          {
+            "text": "Назад",
+            "callback_data": "createRoom_to_back",
+            "data": {}
+          }
+        ]
+      ]
+    },
+    "room": {
+      "text": "Комната создана",
       "inlineKeyboard": [
         [
           {
             "text": "Назад",
-            "data": "cats_to_gameSelect"
+            "callback_data": "room_to_back",
+            "data": {}
           }
         ]
       ]

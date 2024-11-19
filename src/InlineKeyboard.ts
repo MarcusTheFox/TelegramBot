@@ -1,6 +1,6 @@
 import { Button } from './Button';
 
-type ButtonInput = Button | { text: string; data: string };
+type ButtonInput = Button | { text: string; callback_data: string; data?: object};
 
 export class InlineKeyboard {
   private keyboard: Array<Array<Button>> = [];
@@ -11,7 +11,7 @@ export class InlineKeyboard {
         return button;
       }
 
-      return new Button(button.text, button.data);
+      return new Button(button.text, button.callback_data, button.data);
     });
 
     this.keyboard.push(buttonRow);
@@ -29,7 +29,7 @@ export class InlineKeyboard {
       reply_markup: {
         inline_keyboard: this.keyboard.map(row => row.map(button => ({
           text: button.text,
-          callback_data: button.data,
+          callback_data: button.callback_data,
         }))),
       },
     };

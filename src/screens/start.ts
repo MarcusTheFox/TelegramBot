@@ -15,9 +15,9 @@ export async function startScreen(messageScreen: MessageScreen) {
   const nextScreen = await editMessage(messageScreen, screen.text, inlineKeyboard);
 
   const actions: CallbackAction[] = [
-    {button: keyboard[0][0], nextScreenFunction: joinScreen},
-    {button: keyboard[1][0], nextScreenFunction: gameSelectScreen},
-    {button: screen.inlineKeyboard[2][0], nextScreenFunction: settingsScreen}
+    {button: keyboard[0][0], nextScreenCallback: joinScreen},
+    {button: keyboard[1][0], nextScreenCallback: gameSelectScreen},
+    {button: keyboard[2][0], nextScreenCallback: settingsScreen}
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {

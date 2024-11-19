@@ -1,66 +1,74 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { Button } from './Button';
+import { Button, ButtonData } from './Button';
 
 export interface MessageScreen {
   bot: TelegramBot;
   chatId: number;
   messageId: number;
   fromScreen: Array<(screen: MessageScreen) => Promise<void>>;
+  data?: ButtonData;
 }
 
 export interface CallbackAction {
   button: Button;
-  nextScreenFunction: ((screen: MessageScreen) => Promise<void>) | "backScreen";
+  nextScreenCallback: ((screen: MessageScreen) => Promise<void>) | "backScreen";
 }
 
-/**
- * Общий обработчик нажатий кнопок.
- * @param bot - Экземпляр бота.
- * @param chatId - Идентификатор чата.
- * @param actions - Массив кнопок и соответствующих функций перехода.
- * @param nextScreenFunction - Функция, которая должна выполняться при совпадении.
- * @param removeHandler - Обработчик для удаления события.
- */
 export function handleCallback(
   messageScreen: MessageScreen,
   callbackQuery: TelegramBot.CallbackQuery,
   actions: CallbackAction[],
-  removeHandler: (callbackQuery: TelegramBot.CallbackQuery) => void,
-  fromScreen?: (screen: MessageScreen) => Promise<void>,
-) 
-{
-  if (!callbackQuery.message || callbackQuery.message.chat.id !== messageScreen.chatId || callbackQuery.message.message_id !== messageScreen.messageId) return;
-  
-  for (const action of actions) {
-    if (callbackQuery.data === action.button.data) {
-      const chat_id = callbackQuery.message.chat.id;
-      const message_id = callbackQuery.message.message_id;
-      
-      messageScreen.bot.removeListener('callback_query', removeHandler);
+  callbackHandler: (callbackQuery: TelegramBot.CallbackQuery) => void,
+  currentScreenFunction?: (screen: MessageScreen) => Promise<void>,
+) {
+  if (!isCallbackValid(callbackQuery, messageScreen)) return;
 
-      if (action.nextScreenFunction != "backScreen" && fromScreen) {
-        messageScreen.fromScreen.push(fromScreen);
-      }
-
-      if (action.nextScreenFunction == 'backScreen') {
-        const backScreen = messageScreen.fromScreen.pop();
-        if (backScreen)
-          action.nextScreenFunction = backScreen;
-      }
-
-      const nextScreen: MessageScreen = {
-        bot: messageScreen.bot, 
-        chatId: chat_id, 
-        messageId: message_id,
-        fromScreen: messageScreen.fromScreen
-      };
-      
-      if (action.nextScreenFunction == 'backScreen') {
-        throw new Error("No function for next screen...");
-      }
-
-      action.nextScreenFunction(nextScreen);
-      break;
-    }
+  const action = actions.find(a => a.button.callback_data === callbackQuery.data);
+  if (!action) {
+    console.warn(`Неизвестный callback_data: ${callbackQuery.data}`);
+    return;
   }
+
+  messageScreen.bot.removeListener('callback_query', callbackHandler);
+
+  if (action.nextScreenCallback === "backScreen") {
+    handleBackScreen(messageScreen, action.button.data);
+    return;
+  }
+
+  if (currentScreenFunction) {
+    messageScreen.fromScreen.push(currentScreenFunction);
+  }
+
+  const nextScreen = createNextMessageScreen(messageScreen, action.button.data);
+  action.nextScreenCallback(nextScreen);
+}
+
+function isCallbackValid(callbackQuery: TelegramBot.CallbackQuery, messageScreen: MessageScreen): boolean {
+  return (
+    !!callbackQuery.message &&
+    callbackQuery.message.chat.id === messageScreen.chatId &&
+    callbackQuery.message.message_id === messageScreen.messageId
+  )
+}
+
+function handleBackScreen(messageScreen: MessageScreen, buttonData?: ButtonData) {
+  const previousScreen = messageScreen.fromScreen.pop();
+  if (!previousScreen) {
+    console.error("Ошибка: попытка вернуться назад, но стек экранов пуст.");
+    return;
+  }
+  const screen = createNextMessageScreen(messageScreen, buttonData);
+  previousScreen(screen);
+}
+
+function createNextMessageScreen(
+  messageScreen: MessageScreen,
+  buttonData?: ButtonData
+): MessageScreen {
+
+  return {
+    ...messageScreen,
+    data: buttonData,
+  };
 }

@@ -3,7 +3,7 @@ import * as path from 'path';
 
 interface Button {
   text: string;
-  data: string;
+  callback_data: string;
 }
 
 interface Screen {
@@ -23,7 +23,7 @@ const generateScreenCode = (screenName: string, screen: Screen): string => {
   const targetScreens: string[] = [];
   screen.inlineKeyboard.map(row => {
     row.map(el => {
-      let target = el.data.split("_to_")[1];
+      let target = el.callback_data.split("_to_")[1];
       targetScreens.push(
         `import { ${target}Screen } from './${target}';`
       );
@@ -38,7 +38,7 @@ const generateScreenCode = (screenName: string, screen: Screen): string => {
 
   const actions = screen.inlineKeyboard.map((row, rowIndex) => {
     return row.map((el, elIndex) => {
-      return `{button: keyboard[${rowIndex}][${elIndex}], nextScreenFunction: ${el.data.split("_to_")[1]}Screen}`;
+      return `{button: keyboard[${rowIndex}][${elIndex}], nextScreenCallback: ${el.callback_data.split("_to_")[1]}Screen}`;
     }).join(',\n    ')
   }).join(",\n    ");
 

@@ -14,7 +14,7 @@ export async function changeNameScreen(messageScreen: MessageScreen) {
   const nextScreen = await editMessage(messageScreen, screen.text, inlineKeyboard);
 
   const actions: CallbackAction[] = [
-    {button: keyboard[0][0], nextScreenFunction: 'backScreen'}
+    {button: keyboard[0][0], nextScreenCallback: 'backScreen'}
   ];
 
   const bot = messageScreen.bot;
