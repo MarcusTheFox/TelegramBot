@@ -3,7 +3,7 @@ import { InlineKeyboard } from '../InlineKeyboard';
 import { editMessage } from '../Message';
 import messages from '../messages.json';
 import { CallbackAction, handleCallback, MessageScreen } from '../CallbackHandler';
-import { startScreen } from './start';
+
 
 const screen = messages.screens.join;
 const keyboard = screen.inlineKeyboard;

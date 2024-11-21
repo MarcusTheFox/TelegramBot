@@ -54,5 +54,5 @@ export async function changeNameScreen(messageScreen: MessageScreen) {
     handleCallback(nextScreen, callbackQuery, actions, callbackHandler);
   }
 
-  bot.on('callback_query', callbackHandler);
+  messageScreen.bot.on('callback_query', callbackHandler);
 }

@@ -32,7 +32,7 @@
         [
           {
             "text": "Назад",
-            "callback_data": "join_to_start",
+            "callback_data": "join_to_back",
             "data": {}
           }
         ]
@@ -58,7 +58,7 @@
         [
           {
             "text": "Назад",
-            "callback_data": "gameSelect_to_start",
+            "callback_data": "gameSelect_to_back",
             "data": {}
           }
         ]
@@ -82,7 +82,7 @@
         [
           {
             "text": "Назад",
-            "callback_data": "settings_to_start",
+            "callback_data": "settings_to_back",
             "data": {}
           }
         ]
@@ -94,7 +94,7 @@
         [
           {
             "text": "Назад",
-            "callback_data": "changeName_to_settings",
+            "callback_data": "changeName_to_back",
             "data": {}
           }
         ]
@@ -106,7 +106,7 @@
         [
           {
             "text": "Назад",
-            "callback_data": "resetName_to_settings",
+            "callback_data": "resetName_to_back",
             "data": {}
           }
         ]
@@ -136,7 +136,7 @@
         [
           {
             "text": "Назад",
-            "callback_data": "liarsBar_to_gameSelect",
+            "callback_data": "liarsBar_to_back",
             "data": {}
           }
         ]
@@ -163,6 +163,18 @@
           {
             "text": "Назад",
             "callback_data": "createRoom_to_back",
+            "data": {}
+          }
+        ]
+      ]
+    },
+    "rules": {
+      "text": "ПРАВИЛА",
+      "inlineKeyboard": [
+        [
+          {
+            "text": "Назад",
+            "callback_data": "rules_to_back",
             "data": {}
           }
         ]

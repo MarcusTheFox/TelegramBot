@@ -24,9 +24,11 @@ const generateScreenCode = (screenName: string, screen: Screen): string => {
   screen.inlineKeyboard.map(row => {
     row.map(el => {
       let target = el.callback_data.split("_to_")[1];
-      targetScreens.push(
-        `import { ${target}Screen } from './${target}';`
-      );
+      if (!['back', 'backScreen'].includes(target)) {
+        const importScreen = `import { ${target}Screen } from './${target}';`;
+        if (!targetScreens.includes(importScreen))
+        targetScreens.push(importScreen);
+      }
     })
   })
 
@@ -36,11 +38,20 @@ const generateScreenCode = (screenName: string, screen: Screen): string => {
     }).join(', ')}])`;
   }).join('\n    ');
 
+  
   const actions = screen.inlineKeyboard.map((row, rowIndex) => {
     return row.map((el, elIndex) => {
-      return `{button: keyboard[${rowIndex}][${elIndex}], nextScreenCallback: ${el.callback_data.split("_to_")[1]}Screen}`;
+      let target = el.callback_data.split("_to_")[1];
+      if (['back', 'backScreen'].includes(target)) {
+        target = '\'backScreen\'';
+      } else {
+        target = `${target}Screen`;
+      }
+      return `{button: keyboard[${rowIndex}][${elIndex}], nextScreenCallback: ${target}}`;
     }).join(',\n    ')
   }).join(",\n    ");
+
+  const currentScreen = targetScreens.length > 0 ? `, ${screenName}Screen` : '';
 
   return `
 import TelegramBot from 'node-telegram-bot-api';
@@ -62,7 +73,7 @@ export async function ${screenName}Screen(messageScreen: MessageScreen) {
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {
-    handleCallback(nextScreen, callbackQuery, actions, callbackHandler);
+    handleCallback(nextScreen, callbackQuery, actions, callbackHandler${currentScreen});
   }
 
   messageScreen.bot.on('callback_query', callbackHandler);
@@ -71,7 +82,7 @@ export async function ${screenName}Screen(messageScreen: MessageScreen) {
 };
 
 // Функция для генерации всех экранов
-const generateScreens = (overwrite: boolean) => {
+const generateScreens = (overwrite: boolean, excludeFiles: string[]) => {
   const screensDir = path.join(__dirname, 'screens');
 
   // Создаём директорию, если она не существует
@@ -79,23 +90,27 @@ const generateScreens = (overwrite: boolean) => {
     fs.mkdirSync(screensDir, { recursive: true });
   }
 
+  console.log(`${overwrite} ${excludeFiles}`)
   // Если флаг перезаписи, удаляем старые файлы
   if (overwrite) {
     fs.readdirSync(screensDir).forEach(file => {
-      fs.unlinkSync(path.join(screensDir, file));
+      if (!excludeFiles.includes(file)) {
+        fs.unlinkSync(path.join(screensDir, file));
+      }
     });
   }
 
   // Генерация новых экранов
   for (const [screenName, screen] of Object.entries(messages.screens)) {
+    const fileName = `${screenName}.ts`;
     const filePath = path.join(screensDir, `${screenName}.ts`);
     const screenCode = generateScreenCode(screenName, screen);
     
-    if (!fs.existsSync(filePath) || overwrite) {
+    if (!fs.existsSync(filePath) || overwrite && !excludeFiles.includes(fileName)) {
       fs.writeFileSync(filePath, screenCode.trim());
       console.log(`Сгенерирован файл: ${filePath}`);
     } else {
-      console.log(`Файл уже существует и не будет перезаписан: ${filePath}`);
+      console.log(`Файл пропущен: ${filePath}`);
     }
   }
 };
@@ -103,6 +118,10 @@ const generateScreens = (overwrite: boolean) => {
 // Обработка аргументов командной строки
 const args = process.argv.slice(2);
 const overwriteFlag = args.includes('-overwrite');
-
+const excludeArgIndex = args.findIndex(arg => arg.startsWith('--exclude='));
+const excludeFiles = excludeArgIndex !== -1
+  ? args[excludeArgIndex].replace('--exclude=', '').split(' ')
+  : [];
+console.log(excludeFiles)
 // Генерация экранов
-generateScreens(overwriteFlag);
+generateScreens(overwriteFlag, excludeFiles);
