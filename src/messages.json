@@ -27,7 +27,7 @@
       ]
     },
     "join": {
-      "text": "ПОДКЛЮЧЕНИЕ НЕ РАБОТАЕТ",
+      "text": "Введите код от комнаты",
       "inlineKeyboard": [
         [
           {
@@ -185,8 +185,22 @@
       "inlineKeyboard": [
         [
           {
-            "text": "Назад",
-            "callback_data": "room_to_back",
+            "text": "НАЧАТЬ ИГРУ",
+            "callback_data": "room_to_game",
+            "data": {}
+          }
+        ],
+        [
+          {
+            "text": "ПРАВИЛА",
+            "callback_data": "room_to_rules",
+            "data": {}
+          }
+        ],
+        [
+          {
+            "text": "На главную",
+            "callback_data": "room_to_start",
             "data": {}
           }
         ]

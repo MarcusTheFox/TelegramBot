@@ -11,7 +11,8 @@ export interface MessageScreen {
 
 export interface CallbackAction {
   button: Button;
-  nextScreenCallback: ((screen: MessageScreen) => Promise<void>) | "backScreen";
+  isBackScreen?: true;
+  nextScreenCallback?: ((screen: MessageScreen) => Promise<void>);
 }
 
 export function handleCallback(
@@ -22,16 +23,18 @@ export function handleCallback(
   currentScreenFunction?: (screen: MessageScreen) => Promise<void>,
 ) {
   if (!isCallbackValid(callbackQuery, messageScreen)) return;
-
+  
   const action = actions.find(a => a.button.callback_data === callbackQuery.data);
   if (!action) {
     console.warn(`Неизвестный callback_data: ${callbackQuery.data}`);
     return;
   }
+  
+  if (!action.isBackScreen && !action.nextScreenCallback) return;
 
   messageScreen.bot.removeListener('callback_query', callbackHandler);
 
-  if (action.nextScreenCallback === "backScreen") {
+  if (action.isBackScreen) {
     handleBackScreen(messageScreen, action.button.data);
     return;
   }
@@ -40,8 +43,9 @@ export function handleCallback(
     messageScreen.fromScreen.push(currentScreenFunction);
   }
 
-  const nextScreen = createNextMessageScreen(messageScreen, action.button.data);
-  action.nextScreenCallback(nextScreen);
+  const nextScreen = createNextMessageScreen(messageScreen, action.button.data); 
+  if (action.nextScreenCallback)
+    action.nextScreenCallback(nextScreen);
 }
 
 function isCallbackValid(callbackQuery: TelegramBot.CallbackQuery, messageScreen: MessageScreen): boolean {

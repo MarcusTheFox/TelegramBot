@@ -17,9 +17,20 @@ export async function createRoomScreen(messageScreen: MessageScreen) {
   const nextScreen = await editMessage(messageScreen, text, inlineKeyboard);
 
   const actions: CallbackAction[] = [
-    // {button: keyboard[0][0], nextScreenFunction: roomScreen},
-    // {button: keyboard[1][0], nextScreenFunction: rulesScreen},
-    {button: keyboard[2][0], nextScreenCallback: 'backScreen'}
+    { button: 
+      {
+        ...keyboard[0][0], 
+        data: 
+        {
+          game: messageScreen.data?.game,
+          mode: messageScreen.data?.mode,
+          creator: messageScreen.chatId
+        }, 
+      },
+      nextScreenCallback: roomScreen 
+    },
+    { button: keyboard[1][0], nextScreenCallback: rulesScreen },
+    { button: keyboard[2][0], isBackScreen: true },
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {

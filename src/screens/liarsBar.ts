@@ -15,7 +15,7 @@ export async function liarsBarScreen(messageScreen: MessageScreen) {
   const actions: CallbackAction[] = [
     {button: keyboard[0][0], nextScreenCallback: createRoomScreen},
     {button: keyboard[0][1], nextScreenCallback: createRoomScreen},
-    {button: keyboard[1][0], nextScreenCallback: 'backScreen'},
+    {button: keyboard[1][0], isBackScreen: true},
   ];
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {
