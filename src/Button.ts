@@ -8,10 +8,8 @@ export class Button {
 }
 
 export type ButtonData = {
-  [key in 
-    "game" | 
-    "mode" |
-    "creator" |
-    "code"
-  ]?: string | number | boolean | object;
+  game?: string,
+  mode?: string,
+  creator?: number,
+  code?: string
 };

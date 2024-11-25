@@ -1,5 +1,6 @@
 import TelegramBot from 'node-telegram-bot-api';
 import { Button, ButtonData } from './Button';
+import { InlineKeyboard } from './InlineKeyboard';
 
 export interface MessageScreen {
   bot: TelegramBot;
@@ -7,6 +8,12 @@ export interface MessageScreen {
   messageId: number;
   fromScreen: Array<(screen: MessageScreen) => Promise<void>>;
   data?: ButtonData;
+  content?: MessageContent
+}
+
+export interface MessageContent {
+  text: string;
+  inlineKeyboard: InlineKeyboard;
 }
 
 export interface CallbackAction {
@@ -48,7 +55,7 @@ export function handleCallback(
     action.nextScreenCallback(nextScreen);
 }
 
-function isCallbackValid(callbackQuery: TelegramBot.CallbackQuery, messageScreen: MessageScreen): boolean {
+export function isCallbackValid(callbackQuery: TelegramBot.CallbackQuery, messageScreen: MessageScreen): boolean {
   return (
     !!callbackQuery.message &&
     callbackQuery.message.chat.id === messageScreen.chatId &&
