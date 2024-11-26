@@ -3,7 +3,7 @@ import { Button } from './Button';
 type ButtonInput = Button | { text: string; callback_data: string; data?: object};
 
 export class InlineKeyboard {
-  private keyboard: Array<Array<Button>> = [];
+  public keyboard: Array<Array<Button>> = [];
 
   public addRow(buttons: Array<ButtonInput>): this {
     const buttonRow: Array<Button> = buttons.map((button) => {
@@ -17,6 +17,15 @@ export class InlineKeyboard {
     this.keyboard.push(buttonRow);
     return this; // Возвращаем текущий объект для поддержки цепочки вызовов
   }
+
+  public updateRow(rowIndex: number, buttons: Button[]): this {
+    if (rowIndex < 0 || rowIndex >= this.keyboard.length) {
+      throw new Error("Invalid row index");
+    }
+    this.keyboard[rowIndex] = buttons;
+    return this; // Возвращаем текущий объект для поддержки цепочки вызовов
+  }
+
 
   public addKeyboard(keyboard: Array<Array<Button>>): this {
     this.keyboard.push(...keyboard);

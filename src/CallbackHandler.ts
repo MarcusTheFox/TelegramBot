@@ -28,6 +28,7 @@ export function handleCallback(
   actions: CallbackAction[],
   callbackHandler: (callbackQuery: TelegramBot.CallbackQuery) => void,
   currentScreenFunction?: (screen: MessageScreen) => Promise<void>,
+  deleteHadler: boolean = true,
 ) {
   if (!isCallbackValid(callbackQuery, messageScreen)) return;
   
@@ -39,7 +40,9 @@ export function handleCallback(
   
   if (!action.isBackScreen && !action.nextScreenCallback) return;
 
-  messageScreen.bot.removeListener('callback_query', callbackHandler);
+  if (deleteHadler) {
+    messageScreen.bot.removeListener('callback_query', callbackHandler);
+  }
 
   if (action.isBackScreen) {
     handleBackScreen(messageScreen, action.button.data);

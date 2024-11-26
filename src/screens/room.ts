@@ -14,7 +14,7 @@ import { getPlayerName } from '../functoins/userFL';
 const screen = messages.screens.room;
 const keyboard = screen.inlineKeyboard;
 
-export async function roomScreen(messageScreen: MessageScreen, isAlreadyConnected: boolean = false) {
+export async function roomScreen(messageScreen: MessageScreen) {
   const bot = messageScreen.bot;
 
   let room = await findRoom(messageScreen);
@@ -54,7 +54,20 @@ export async function roomScreen(messageScreen: MessageScreen, isAlreadyConnecte
   const actions: CallbackAction[] = [
     {
       button: keyboard[0][0],
-      nextScreenCallback: async () => {bot.emit(game_start_event_string)},
+      nextScreenCallback: async () => {
+        const players = room.players;
+        if (players.length < 2) {
+          await editMessage(nextScreen, text+"\n\nДля начала игры требуется хотя бы два игрока.", inlineKeyboard);
+          bot.on('callback_query', callbackHandler);
+          return;
+        }
+        if (!messageScreen.data?.code) return;
+
+        const gameScreenModule = await import(`./${messageScreen.data.game}/game${messageScreen.data.mode ? "_" + messageScreen.data.mode : ""}`);
+        await gameScreenModule.initializeGame(room, bot);
+
+        bot.emit(game_start_event_string, {roomCode: room.code, gameScreen: gameScreenModule});
+      },
     },
     {
       button: keyboard[2][0], // Выход из комнаты
@@ -68,7 +81,28 @@ export async function roomScreen(messageScreen: MessageScreen, isAlreadyConnecte
   ]
 
   const updateRoomPlayers = () => {
-    roomScreen(nextScreen, true);
+    bot.removeListener(player_update_event_string, updateRoomPlayers);
+    bot.removeListener(game_start_event_string, gameStart);
+    bot.removeListener('callback_query', callbackHandler);
+    roomScreen(nextScreen);
+  }
+
+  const gameStart = async (callback: any) => {
+    const { roomCode, gameScreen } = callback;
+    if (roomCode !== messageScreen.data?.code) {
+      console.log("Room Code Error");
+      return;
+    }
+
+    bot.removeListener(player_update_event_string, updateRoomPlayers);
+    bot.removeListener(game_start_event_string, gameStart);
+    bot.removeListener('callback_query', callbackHandler);
+
+    gameScreen.default({ 
+      ...nextScreen, 
+      fromScreen: [], 
+      data: { code: room.code } 
+    });
   }
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {
@@ -77,11 +111,9 @@ export async function roomScreen(messageScreen: MessageScreen, isAlreadyConnecte
     handleCallback(nextScreen, callbackQuery, actions, callbackHandler);
   }
 
-  if (!isAlreadyConnected) {
-    bot.on(player_update_event_string, updateRoomPlayers);
-    bot.on(game_start_event_string, updateRoomPlayers);
-    bot.on('callback_query', callbackHandler);
-  }
+  bot.on(player_update_event_string, updateRoomPlayers);
+  bot.on(game_start_event_string, gameStart);
+  bot.on('callback_query', callbackHandler);
 }
 
 function getRoomText(players: string[], code: string, game: string, mode?: string) {

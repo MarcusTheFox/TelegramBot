@@ -2,7 +2,7 @@ import TelegramBot from 'node-telegram-bot-api';
 import { InlineKeyboard } from '../InlineKeyboard';
 import { editMessage } from '../Message';
 import messages from '../messages.json';
-import { CallbackAction, handleCallback, MessageScreen } from '../CallbackHandler';
+import { CallbackAction, handleCallback, isCallbackValid, MessageScreen } from '../CallbackHandler';
 import { roomScreen } from './room';
 import User from '../models/User';
 import RoomModel from '../models/Room';
@@ -47,6 +47,7 @@ export async function joinScreen(messageScreen: MessageScreen) {
   bot.on('message', textHandler);
 
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {
+    if (!isCallbackValid(callbackQuery, messageScreen)) return;
     bot.removeListener('message', textHandler);
     handleCallback(nextScreen, callbackQuery, actions, callbackHandler);
   }

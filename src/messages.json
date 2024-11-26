@@ -121,7 +121,7 @@
             "callback_data": "liarsBar:card_to_createRoom",
             "data": {
               "game":"Liar`s Bar",
-              "mode": "Liar`s Card"
+              "mode": "Card"
             }
           },
           {
@@ -129,7 +129,7 @@
             "callback_data": "liarsBar:dice_to_createRoom",
             "data": {
               "game":"Liar`s Bar",
-              "mode": "Liar`s Dice"
+              "mode": "Dice"
             }
           }
         ],
