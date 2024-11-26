@@ -5,6 +5,7 @@ import { CallbackAction, handleCallback, MessageScreen } from '../../CallbackHan
 import { Button } from '../../Button';
 import GameModel from '../../models/Game';
 import { getPlayerName } from '../../functoins/userFL';
+import { startScreen } from '../start';
 
 enum GameStatus {
   Begin,
@@ -153,14 +154,95 @@ ${playerListText}
           bot.emit("screen_update");
         }
       },
-      {button: inlineKeyboard.keyboard[2][0], nextScreenCallback: async () => {}}
+      {button: inlineKeyboard.keyboard[2][0], nextScreenCallback: async () => {
+        if (game.turnHistory.length === 0) {
+          await editMessage(nextScreen, screenText + "До вас еще никто не ходил\\!", inlineKeyboard, 'MarkdownV2');
+          return;
+        }
+        const lastTurn = game.turnHistory.at(-1);
+        if (!lastTurn) return;
+
+        game.liarCall = {
+          accusedId: lastTurn.playerId, // Обвиняемый — тот, кто сделал последний ход
+          accuserId: messageScreen.chatId, // Обвинитель — текущий игрок
+        };
+  
+        await game.save();
+  
+        // Формируем сообщение о вызове
+        const accusedName = await getPlayerName(bot, game.liarCall.accusedId);
+        const accuserName = await getPlayerName(bot, game.liarCall.accuserId);
+  
+        const liarCallText = `
+🚨 *Обвинение в обмане*\\! 🚨
+
+👤 *${accuserName}* утверждает, что *${accusedName}* обманул\\.
+
+🤔 Проверяем карты ${accusedName}\\.\\.\\. 
+`;
+        console.log('before first emit');
+        bot.emit('liar_event', { liarCallText: liarCallText });
+        console.log('after first emit');
+  
+        // Проверяем карты обвиняемого
+        const accusedCardsAreValid = lastTurn.playedCards.every(card => card === game.table);
+        console.log(`accusedCardsAreValid = ${accusedCardsAreValid}`);
+        // Сообщение о результатах
+        if (accusedCardsAreValid) {
+          const failText = `
+❌ *${accuserName}* ошибся\\! Карты ${accusedName} соответствуют столу\\.
+
+🙅‍♂️ *${accuserName}* выбывает из игры\\.
+          `;
+          console.log('before second fail emit');
+          bot.emit('liar_event', { resultText: failText });
+          console.log('after second dail emit');
+        } else {
+          const successText = `
+✅ *${accusedName}* обманул\\! Карты не соответствуют столу\\.
+
+🙅‍♂️ *${accusedName}* выбывает из игры\\.
+          `;
+          console.log('before second success emit');
+          bot.emit('liar_event', { resultText: successText });
+          console.log('after second success emit');
+        }
+
+        
+      }}
     )
   }
 
   const screenUpdate = () => {
     bot.removeListener('screen_update', screenUpdate);
     bot.removeListener('callback_query', callbackHandler);
+    bot.removeListener('liar_event', liarEvent);
     gameLiarsBarCard(nextScreen);
+  }
+
+  const liarEvent = async (callback_data: any) => {
+    bot.removeListener('screen_update', screenUpdate);
+    bot.removeListener('callback_query', callbackHandler);
+
+    console.log(`liar event for ${messageScreen.chatId}`)
+    console.log(callback_data)
+    const { liarCallText, resultText } = callback_data
+    if (liarCallText && !resultText) {
+      await editMessage(nextScreen, liarCallText, new InlineKeyboard(), 'MarkdownV2');
+    }
+    console.log(`${resultText} for ${messageScreen.chatId}`)
+    if (resultText) {
+      console.log(`resultText for ${messageScreen.chatId}`)
+      // Используем асинхронные паузы для последовательного обновления
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Пауза 3 секунды
+      await editMessage(nextScreen, resultText, new InlineKeyboard(), 'MarkdownV2');
+
+      // Ещё одна пауза перед возвратом на стартовый экран
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      bot.removeListener('liar_event', liarEvent);
+      await startScreen({ ...nextScreen, fromScreen: [] });
+      
+    }
   }
   
   function callbackHandler(callbackQuery: TelegramBot.CallbackQuery) {
@@ -169,4 +251,5 @@ ${playerListText}
 
   bot.on('callback_query', callbackHandler);
   bot.on('screen_update', screenUpdate);
+  bot.on('liar_event', liarEvent);
 }
