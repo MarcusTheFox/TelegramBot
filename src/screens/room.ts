@@ -1,5 +1,3 @@
-import RoomModel from '../models/Room';
-import User from '../models/User'; // Модель пользователей
 import TelegramBot from 'node-telegram-bot-api';
 import { InlineKeyboard } from '../InlineKeyboard';
 import { editMessage } from '../Message';
@@ -47,17 +45,15 @@ export async function roomScreen(messageScreen: MessageScreen) {
   // inlineKeyboard.addRow([keyboard[1][0]]); // Кнопка "Правила"
   inlineKeyboard.addRow([keyboard[2][0]]); // Кнопка "Выйти из комнаты"
 
-  const nextScreen = await editMessage(messageScreen, text, inlineKeyboard);
+  const nextScreen = await editMessage(messageScreen, text, inlineKeyboard, 'MarkdownV2');
 
-  // room.players.forEach(playerId => room.messageIds[playerId] = nextScreen.messageId);
-  
   const actions: CallbackAction[] = [
     {
       button: keyboard[0][0],
       nextScreenCallback: async () => {
         const players = room.players;
         if (players.length < 2) {
-          await editMessage(nextScreen, text+"\n\nДля начала игры требуется хотя бы два игрока.", inlineKeyboard);
+          await editMessage(nextScreen, text+"\n\nДля начала игры требуется хотя бы два игрока\\.", inlineKeyboard, 'MarkdownV2');
           bot.on('callback_query', callbackHandler);
           return;
         }
@@ -117,8 +113,8 @@ export async function roomScreen(messageScreen: MessageScreen) {
 }
 
 function getRoomText(players: string[], code: string, game: string, mode?: string) {
-  let text = `Комната создана!\n\nКод: ${code}\nИгра: ${game}`;
+  let text = `Комната создана\\!\n\nКод: \`\\\`${code}\\\`\`\nИгра: ${game}`;
   if (mode) text += `\nРежим: ${mode}`;
-  text += `\n\nИгроки:\n${players.map((name) => `- ${name}`).join('\n')}`;
+  text += `\n\nИгроки:\n${players.map((name) => `\\- ${name}`).join('\n')}`;
   return text;
 }

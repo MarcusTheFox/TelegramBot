@@ -43,7 +43,7 @@
       "inlineKeyboard": [
         [
           {
-            "text": "Liar`s Bar",
+            "text": "Liar's Bar",
             "callback_data": "gameSelect_to_liarsBar",
             "data": {}
           },
@@ -113,22 +113,22 @@
       ]
     },
     "liarsBar": {
-      "text": "Liar`s Bar\nВыберите режим",
+      "text": "Liar's Bar\nВыберите режим",
       "inlineKeyboard": [
         [
           {
-            "text": "Liar`s Card",
+            "text": "Liar's Card",
             "callback_data": "liarsBar:card_to_createRoom",
             "data": {
-              "game":"Liar`s Bar",
+              "game":"Liar's Bar",
               "mode": "Card"
             }
           },
           {
-            "text": "Liar`s Dice",
+            "text": "Liar's Dice",
             "callback_data": "liarsBar:dice_to_createRoom",
             "data": {
-              "game":"Liar`s Bar",
+              "game":"Liar's Bar",
               "mode": "Dice"
             }
           }

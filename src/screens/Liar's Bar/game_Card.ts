@@ -9,6 +9,8 @@ import { startScreen } from '../start';
 import RoomModel from '../../models/Room';
 import { RandomNumber, WaitForMilliseconds } from '../../functoins/globalFL';
 
+const max_players_in_game: number = 4;
+
 export async function initializeGame(room: any, bot: TelegramBot) {
   let cards: string[] = ["🤡", "🤡"];
   for (let _ = 0; _ < 6; _++) {
@@ -22,10 +24,10 @@ export async function initializeGame(room: any, bot: TelegramBot) {
 
   const players = room.players.map((chatId: number, index: number) => ({
     chatId,
-    hand: deck.splice(0, 5), // Раздаем по 5 карт
+    hand: index < max_players_in_game ? deck.splice(0, 5) : [], // Раздаем по 5 карт
     loseCount: 0,
-    spectator: false,
-    order: index,
+    spectator: index < max_players_in_game ? false : true,
+    order: index < max_players_in_game ? index : -1,
   }));
 
   const game = new GameModel({
