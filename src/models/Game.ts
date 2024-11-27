@@ -4,7 +4,12 @@ interface Game extends Document {
   roomCode: string; // Код комнаты
   table: "A" | "K" | "Q"; // Стол для карт (Например, стол дам)
   deck: string[]; // Остаток колоды
-  players: { chatId: number; hand: string[]; order: number }[]; // Игроки с их картами
+  players: { 
+    chatId: number; 
+    hand: string[]; 
+    loseCount: number; 
+    spectator: boolean; 
+    order: number }[]; // Игроки с их картами
   currentPlayerIndex: number; // Индекс текущего игрока
   turnHistory: { playerId: number; playedCards: string[] }[]; // История ходов
   liarCall?: { accuserId: number; accusedId: number }; // Текущее обвинение в обмане
@@ -18,6 +23,8 @@ const GameSchema = new Schema<Game>({
     {
       chatId: { type: Number, required: true },
       hand: { type: [String], required: true },
+      loseCount: { type: Number, required: true },
+      spectator: { type: Boolean, required: true },
       order: { type: Number, required: true }, // Порядок хода
     },
   ],

@@ -6,12 +6,8 @@ import { Button } from '../../Button';
 import GameModel from '../../models/Game';
 import { getPlayerName } from '../../functoins/userFL';
 import { startScreen } from '../start';
-
-enum GameStatus {
-  Begin,
-  InProgress,
-  End
-}
+import RoomModel from '../../models/Room';
+import { RandomNumber, WaitForMilliseconds } from '../../functoins/globalFL';
 
 export async function initializeGame(room: any, bot: TelegramBot) {
   let cards: string[] = ["🤡", "🤡"];
@@ -27,6 +23,8 @@ export async function initializeGame(room: any, bot: TelegramBot) {
   const players = room.players.map((chatId: number, index: number) => ({
     chatId,
     hand: deck.splice(0, 5), // Раздаем по 5 карт
+    loseCount: 0,
+    spectator: false,
     order: index,
   }));
 
@@ -58,7 +56,7 @@ export default async function gameLiarsBarCard(messageScreen: MessageScreen) {
   const game = await GameModel.findOne({ roomCode: messageScreen.data?.code });
   if (!game) throw new Error("Game not found.");
 
-  const currentPlayer = game.players[game.currentPlayerIndex];
+  const currentPlayer = game.players.filter((p) => p.spectator === false)[game.currentPlayerIndex];
   const playerData = game.players.find((p) => p.chatId === chatId);
 
   if (!playerData) throw new Error("Player not found in this game.");
@@ -83,15 +81,20 @@ export default async function gameLiarsBarCard(messageScreen: MessageScreen) {
   }
 
   const playerList = await Promise.all(game.players.map(async player => {
-    return { name: await getPlayerName(bot, player.chatId), id: player.chatId }
+    return { 
+      name: await getPlayerName(bot, player.chatId), 
+      id: player.chatId, 
+      loseCount: player.loseCount,
+      spectator: player.spectator,
+    }
   }));
   const playerListText = playerList
   .map(player => {
     // Если это текущий игрок, выделяем его с помощью эмодзи
     const isCurrentPlayer = player.id === currentPlayer.chatId;
     return isCurrentPlayer
-      ? `▶️ *${player.name}*`
-      : `⬜️ ${player.name}`;
+      ? `▶️ *${player.name} \\(${player.loseCount} : 6\\)*`
+      : `⬜️ ${player.spectator ? "~" : ""}${player.name} \\(${player.loseCount} : 6\\)${player.spectator ? "~" : ""}`;
   })
   .join("\n");
 
@@ -148,7 +151,7 @@ ${playerListText}
           await game.save();
     
           // Передача хода следующему игроку
-          game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.length;
+          game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.players.filter((p) => p.spectator === false).length;
           await game.save();
 
           bot.emit("screen_update");
@@ -180,37 +183,110 @@ ${playerListText}
 
 🤔 Проверяем карты ${accusedName}\\.\\.\\. 
 `;
-        console.log('before first emit');
         bot.emit('liar_event', { liarCallText: liarCallText });
-        console.log('after first emit');
+        await WaitForMilliseconds(3000); // Пауза 3 секунды
   
+        let loserId: number;
+        let loserName: string;
         // Проверяем карты обвиняемого
-        const accusedCardsAreValid = lastTurn.playedCards.every(card => card === game.table);
-        console.log(`accusedCardsAreValid = ${accusedCardsAreValid}`);
+        const accusedCardsAreValid = lastTurn.playedCards.every(card => card === game.table || card === '🤡');
         // Сообщение о результатах
         if (accusedCardsAreValid) {
           const failText = `
 ❌ *${accuserName}* ошибся\\! Карты ${accusedName} соответствуют столу\\.
 
-🙅‍♂️ *${accuserName}* выбывает из игры\\.
+🙅‍♂️ *${accuserName}* испытает удачу остаться в игре\\.
           `;
-          console.log('before second fail emit');
+          loserId = game.liarCall.accuserId;
+          loserName = accuserName;
           bot.emit('liar_event', { resultText: failText });
-          console.log('after second dail emit');
+          await WaitForMilliseconds(3000);
         } else {
           const successText = `
 ✅ *${accusedName}* обманул\\! Карты не соответствуют столу\\.
 
-🙅‍♂️ *${accusedName}* выбывает из игры\\.
+🙅‍♂️ *${accusedName}* испытает удачу остаться в игре\\.
           `;
-          console.log('before second success emit');
+          loserId = game.liarCall.accusedId;
+          loserName = accusedName;
           bot.emit('liar_event', { resultText: successText });
-          console.log('after second success emit');
+          await WaitForMilliseconds(3000);
         }
 
-        
+        const loserPlayer = game.players.find((p) => p.chatId === loserId);
+        if (!loserPlayer) return;
+
+        let luckText: string;
+        if (RandomNumber(1, 6) > ++loserPlayer.loseCount) {
+          luckText = `
+🍀 УСПЕХ\\!\\!\\! 🍀
+
+Игрок *${loserName}* остается в игре\\.
+Он потратил попыток: ${loserPlayer.loseCount} из 6
+          `
+        } else {
+          luckText = `
+😞 Неудача\\.\\.\\.
+
+Игрок *${loserName}* становится наблюдателем\\.
+Он потратил попыток: ${loserPlayer.loseCount} из 6
+          `
+          loserPlayer.spectator = true;
+        }
+        game.save();
+
+        const playersInGame = game.players.filter((p) => p.spectator === false)
+        const isLastPlayerLeft = playersInGame.length < 2;
+
+        bot.emit('liar_event', { luckText: luckText, isLast: isLastPlayerLeft });
+        await WaitForMilliseconds(3000);
+
+        if (isLastPlayerLeft) {
+          const winnerName = await getPlayerName(messageScreen.bot, playersInGame[0].chatId);
+          const finalText = `
+Игра окончена\\.
+Победитель *${winnerName}*
+          `
+          bot.emit('liar_event', { finalText: finalText });
+          await GameModel.deleteOne({ roomCode: messageScreen.data?.code })
+          await RoomModel.deleteOne({ code: messageScreen.data?.code })
+        } else {
+          resetTable(game);
+          await game.save();
+        }
       }}
     )
+  }
+  
+  function resetTable(game: any) {
+    let cards: string[] = ["🤡", "🤡"];
+    for (let _ = 0; _ < 6; _++) {
+      cards.push("A");
+      cards.push("K");
+      cards.push("Q");
+    }
+    const deck = shuffleDeck(cards);
+
+    const table = shuffleDeck(["A", "K", "Q"])[0];
+
+    let index: number = 0;
+    const players = game.players.map((player: any) => {
+      player = {
+        ...player, 
+        order: player.spectator ? -1 : index++,
+        hand: player.spectator ? [] : deck.splice(0, 5)
+      };
+      return player;
+    });
+
+    const playersInGame: number = game.players.filter((p: any) => p.spectator === false).length;
+    const currentPlayer: number = RandomNumber(0, playersInGame - 1);
+
+    game.turnHistory = undefined;
+    game.table = table;
+    game.deck = deck;
+    game.players = players;
+    game.currentPlayerIndex = currentPlayer;
   }
 
   const screenUpdate = () => {
@@ -224,24 +300,36 @@ ${playerListText}
     bot.removeListener('screen_update', screenUpdate);
     bot.removeListener('callback_query', callbackHandler);
 
-    console.log(`liar event for ${messageScreen.chatId}`)
-    console.log(callback_data)
-    const { liarCallText, resultText } = callback_data
-    if (liarCallText && !resultText) {
+    const { 
+      liarCallText, 
+      resultText, 
+      luckText,
+      isLast,
+      finalText } = callback_data
+    if (liarCallText) {
       await editMessage(nextScreen, liarCallText, new InlineKeyboard(), 'MarkdownV2');
     }
-    console.log(`${resultText} for ${messageScreen.chatId}`)
     if (resultText) {
-      console.log(`resultText for ${messageScreen.chatId}`)
       // Используем асинхронные паузы для последовательного обновления
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Пауза 3 секунды
       await editMessage(nextScreen, resultText, new InlineKeyboard(), 'MarkdownV2');
-
-      // Ещё одна пауза перед возвратом на стартовый экран
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      bot.removeListener('liar_event', liarEvent);
-      await startScreen({ ...nextScreen, fromScreen: [] });
+    }
+    if (luckText) {
+      await editMessage(nextScreen, luckText, new InlineKeyboard(), 'MarkdownV2');
       
+      if (!isLast) {
+        await WaitForMilliseconds(3000);
+        await editMessage(nextScreen, 'Обновляем стол', new InlineKeyboard(), 'MarkdownV2');
+        await WaitForMilliseconds(3000);
+        bot.removeListener('liar_event', liarEvent);
+        gameLiarsBarCard(nextScreen);
+      }
+    }
+    if (finalText) {
+      await editMessage(nextScreen, finalText, new InlineKeyboard(), 'MarkdownV2');
+      // Ещё одна пауза перед возвратом на стартовый экран
+      await WaitForMilliseconds(3000);
+      bot.removeListener('liar_event', liarEvent);
+      startScreen({ ...nextScreen, fromScreen: [] });
     }
   }
   
@@ -252,4 +340,10 @@ ${playerListText}
   bot.on('callback_query', callbackHandler);
   bot.on('screen_update', screenUpdate);
   bot.on('liar_event', liarEvent);
+}
+
+async function throwDice(messageScreen: MessageScreen) {
+  const bot = messageScreen.bot;
+  const chatId = messageScreen.chatId;
+  const dice = await bot.sendDice(chatId);
 }
