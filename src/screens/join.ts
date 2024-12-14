@@ -6,6 +6,7 @@ import { CallbackAction, handleCallback, isCallbackValid, MessageScreen } from '
 import { roomScreen } from './room';
 import User from '../models/User';
 import RoomModel from '../models/Room';
+import GameModel from '../models/Game';
 
 const screen = messages.screens.join;
 const keyboard = screen.inlineKeyboard;
@@ -33,13 +34,19 @@ export async function joinScreen(messageScreen: MessageScreen) {
 
       // проверка кода комнаты в MongoDB
       const room = await RoomModel.findOne({ code: codeRoom });
+      const game = await GameModel.findOne({ roomCode: codeRoom });
       
       if (!room) {
         await bot.sendMessage(chatId, `Комната с кодом ${codeRoom} не найдена. Попробуйте снова.`);
         await joinScreen({...messageScreen, messageId: 0});
       }
       else {
-        await roomScreen({bot, chatId, messageId: 0, fromScreen: [], data: {code: codeRoom}});
+        if (game) {
+          await bot.sendMessage(chatId, `В комнате с кодом ${codeRoom} уже идет игра. Попробуйте снова.`);
+          await joinScreen({...messageScreen, messageId: 0});
+        } else {
+          await roomScreen({bot, chatId, messageId: 0, fromScreen: [], data: {code: codeRoom}});
+        }
       }
     }
   };

@@ -31,7 +31,7 @@ export async function changeNameScreen(messageScreen: MessageScreen) {
           { name: newName },
           { upsert: true } // Создаст новую запись, если не найдена
         );
-        bot.sendMessage(chatId, `Ваше новое имя сохранено как: ${newName}`);
+        await bot.sendMessage(chatId, `Ваше новое имя сохранено как: ${newName}`);
       } catch (error) {
         bot.sendMessage(chatId, 'Произошла ошибка при сохранении имени.');
         console.error('Error saving name:', error);
